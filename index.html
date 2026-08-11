@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="theme-color" content="#c0392b"/>
+<title>ReadySpeak Colombian Spanish — Social Edition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(160deg, #c0392b 0%, #e67e22 100%); min-height: 100vh; padding-bottom: 80px; }
+  h1 { text-align:center; color:white; font-size:1.4rem; font-weight:900; padding: 18px 16px 4px; text-shadow: 1px 1px 6px rgba(0,0,0,0.3); }
+  .subtitle { text-align:center; color:rgba(255,255,255,0.85); font-size:0.82rem; margin-bottom:16px; }
+  .brand { text-align:center; color:rgba(255,255,255,0.6); font-size:0.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding-top:6px; }
+  .save-hint { background:rgba(0,0,0,0.2); color:rgba(255,255,255,0.9); font-size:0.78rem; padding:10px 16px; text-align:center; line-height:1.5; }
+  .save-hint b { color: white; }
+  .dir-toggle { display:flex; gap:8px; padding:12px 16px 4px; max-width:460px; margin:0 auto; }
+  .dir-btn { flex:1; padding:10px; border:2px solid rgba(255,255,255,0.4); border-radius:12px; background:transparent; color:white; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
+  .dir-btn.active { background:white; color:#c0392b; border-color:white; }
+  .search-bar { display:flex; align-items:center; background:rgba(255,255,255,0.95); border-radius:14px; margin:12px 16px; padding:10px 14px; gap:8px; max-width:460px; margin-left:auto; margin-right:auto; }
+  .search-icon { font-size:1rem; }
+  .search-bar input { border:none; outline:none; font-size:0.95rem; width:100%; background:transparent; color:#2c3e50; }
+  .cat-row { display:flex; gap:8px; overflow-x:auto; padding:0 16px 12px; max-width:460px; margin:0 auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .cat-row::-webkit-scrollbar { display:none; }
+  .cat-pill { flex-shrink:0; padding:8px 14px; border-radius:20px; border:none; cursor:pointer; font-weight:700; font-size:0.82rem; white-space:nowrap; background:rgba(255,255,255,0.25); color:white; transition:all 0.2s; }
+  .cat-pill.active { background:white; color:#c0392b; }
+  .phrase-list { padding:0 16px; max-width:460px; margin:0 auto; }
+  .phrase-card { background:white; border-radius:14px; padding:14px 16px; margin-bottom:10px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:transform 0.15s; position:relative; }
+  .phrase-card:active { transform:scale(0.98); }
+  .phrase-card.speaking { box-shadow:0 0 0 3px #c0392b, 0 3px 12px rgba(0,0,0,0.12); }
+  .phrase-en { font-size:0.95rem; color:#2c3e50; font-weight:600; margin-bottom:6px; line-height:1.4; }
+  .phrase-es { font-size:1.1rem; color:#c0392b; font-weight:700; line-height:1.4; display:flex; align-items:center; gap:8px; }
+  .phrase-es .speak-icon { font-size:1.2rem; flex-shrink:0; }
+  .phrase-tag { font-size:0.65rem; color:#999; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+  .no-results { text-align:center; color:rgba(255,255,255,0.7); padding:40px 16px; font-size:0.95rem; }
+  .now-speaking { position:fixed; bottom:0; left:0; right:0; background:#c0392b; color:white; padding:14px 20px; text-align:center; font-weight:700; font-size:0.9rem; transform:translateY(100%); transition:transform 0.3s; z-index:100; }
+  .now-speaking.show { transform:translateY(0); }
+  .wave { margin-right:8px; }
+  .add-phrase-btn { display:block; width:calc(100% - 32px); margin:12px auto; padding:14px; background:linear-gradient(135deg, #c0392b, #e67e22); color:white; border:none; border-radius:14px; font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:0.5px; max-width:460px; }
+  .add-phrase-btn:active { opacity:0.85; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; align-items:flex-end; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:white; border-radius:24px 24px 0 0; padding:24px 20px 40px; width:100%; max-width:500px; animation:slideUp 0.25s ease; }
+  @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+  .modal-title { font-size:1.15rem; font-weight:800; color:#2c3e50; margin-bottom:16px; text-align:center; }
+  .modal-label { font-size:0.8rem; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; margin-top:12px; }
+  .modal-input, .modal-select { width:100%; padding:12px 14px; border:2px solid #e0e0e0; border-radius:12px; font-size:1rem; color:#2c3e50; box-sizing:border-box; outline:none; font-family:inherit; }
+  .modal-input:focus, .modal-select:focus { border-color:#c0392b; }
+  .modal-btn-row { display:flex; gap:10px; margin-top:18px; }
+  .modal-cancel { flex:1; padding:13px; border:2px solid #ddd; background:white; border-radius:12px; font-size:0.95rem; font-weight:700; color:#666; cursor:pointer; }
+  .modal-save { flex:2; padding:13px; background:linear-gradient(135deg, #c0392b, #e67e22); border:none; border-radius:12px; font-size:0.95rem; font-weight:700; color:white; cursor:pointer; }
+  .modal-save:active, .modal-cancel:active { opacity:0.8; }
+  .modal-error { color:#e74c3c; font-size:0.82rem; margin-top:8px; text-align:center; min-height:18px; }
+  .delete-phrase { position:absolute; top:8px; right:8px; background:none; border:none; color:#ccc; font-size:1rem; cursor:pointer; padding:4px 6px; border-radius:8px; line-height:1; }
+  .delete-phrase:active { color:#e74c3c; }
+  .custom-badge { display:inline-block; background:#fbe9e7; color:#c0392b; font-size:0.6rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-left:6px; letter-spacing:0.5px; vertical-align:middle; }
+  .licensed { text-align:center; color:rgba(255,255,255,0.45); font-size:0.65rem; padding:4px 16px 0; }
+</style>
+
+<style id="lock-styles">
+#lockOverlay { position:fixed;inset:0;z-index:99999;background:rgba(5,5,10,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;font-family:'Segoe UI',Arial,sans-serif }
+#lockOverlay .lock-icon { font-size:48px;margin-bottom:16px }
+#lockOverlay h2 { color:#fff;font-size:22px;margin-bottom:8px;letter-spacing:1px }
+#lockOverlay p { color:#888;font-size:14px;line-height:1.6;max-width:320px;margin-bottom:20px }
+#lockOverlay .lock-input { padding:12px 16px;border-radius:10px;border:2px solid #333;background:#111;color:#fff;font-size:16px;width:260px;text-align:center;outline:none;margin-bottom:12px }
+#lockOverlay .lock-input:focus { border-color:#c0392b }
+#lockOverlay .lock-btn { padding:12px 32px;border-radius:10px;border:none;background:#c0392b;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;letter-spacing:1px;transition:all 0.2s }
+#lockOverlay .lock-btn:hover { background:#e67e22;box-shadow:0 0 15px rgba(230,126,34,0.4) }
+#lockOverlay .lock-error { color:#e04040;font-size:13px;margin-top:8px;display:none }
+#lockOverlay .lock-demo { margin-top:18px;color:#555;font-size:13px }
+#lockOverlay .lock-demo a { color:#00aaff;text-decoration:none }
+#lockOverlay .lock-buy { margin-top:14px;display:inline-block;padding:8px 20px;border-radius:8px;background:rgba(230,126,34,0.2);border:1px solid rgba(230,126,34,0.5);color:#e67e22;text-decoration:none;font-size:13px;font-weight:bold }
+#lockOverlay .lock-buy:hover { background:rgba(230,126,34,0.35);color:#fff }
+</style>
+</head>
+
+<body>
+<div id="lockOverlay" style="display:none;">
+  <div class="lock-icon">🔒</div>
+  <h2>Unlock Full Phrasebook</h2>
+  <p>Enter your license key to unlock all social and travel phrases. Don't have a key? Get instant access for $4.99.</p>
+  <input type="text" class="lock-input" id="lockInput" placeholder="Enter license key" onkeypress="if(event.key==='Enter')tryUnlock()"/>
+  <button class="lock-btn" onclick="tryUnlock()">Unlock Now</button>
+  <div class="lock-error" id="lockError">Invalid code. Please try again.</div>
+  <a href="https://wordsandwheels.net" class="lock-buy">Buy Access — $4.99</a>
+  <div class="lock-demo">Want to try first? <a href="#" onclick="enterDemo();return false;">Browse demo (10 phrases)</a></div>
+</div>
+
+<div id="app">
+  <h1>ReadySpeak Colombian Spanish</h1>
+  <div class="brand">Social Edition</div>
+  <div class="subtitle">Travel, Conversation &amp; Dining</div>
+
+  <div class="save-hint">
+    <b>Tap any phrase</b> to hear it spoken aloud. Your custom phrases are saved on this device.
+  </div>
+
+  <div class="dir-toggle">
+    <button class="dir-btn active" onclick="setDirection('en-tl')">English &rarr; Colombian Spanish</button>
+    <button class="dir-btn" onclick="setDirection('tl-en')">Colombian Spanish &rarr; English</button>
+  </div>
+
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search phrases..." oninput="renderPhrases()"/>
+  </div>
+
+  <div class="cat-row" id="catRow"></div>
+  <div class="phrase-list" id="phraseList"></div>
+  <button class="add-phrase-btn" onclick="openModal()">+ Add Your Own Phrase</button>
+</div>
+
+<div class="now-speaking" id="nowSpeaking">
+  <span class="wave">🔊</span><span id="speakingText"></span>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title">Add Your Own Phrase</div>
+    <div class="modal-label">English</div>
+    <input type="text" class="modal-input" id="customEn" placeholder="Enter English phrase"/>
+    <div class="modal-label">Colombian Spanish</div>
+    <input type="text" class="modal-input" id="customTl" placeholder="Enter Colombian Spanish translation"/>
+    <div class="modal-label">Category</div>
+    <select class="modal-select" id="customCat">
+      <option value="Dining">Dining</option>
+      <option value="Travel">Travel</option>
+      <option value="Conversation">Conversation</option>
+      <option value="Greetings">Greetings</option>
+      <option value="Shopping">Shopping</option>
+      <option value="Directions">Directions</option>
+      <option value="Emergency">Emergency</option>
+    </select>
+    <div class="modal-error" id="modalError"></div>
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save" onclick="saveCustomPhrase()">Save Phrase</button>
+    </div>
+  </div>
+</div>
+
+<div class="licensed">ReadySpeak&trade; &mdash; Colombian Social Edition</div>
+
+<script>
+// ===== PHRASES =====
+const PHRASES = [
+  {
+    "cat": "Dining",
+    "en": "I would like a Colombian coffee (tinto), please",
+    "tl": "Quiero un tinto, por favor"
+  },
+  {
+    "cat": "Dining",
+    "en": "Can I have a glass of water?",
+    "tl": "¿Me regala un vaso de agua?"
+  },
+  {
+    "cat": "Dining",
+    "en": "I'm hungry",
+    "tl": "Tengo hambre"
+  },
+  {
+    "cat": "Dining",
+    "en": "I'm thirsty",
+    "tl": "Tengo sed"
+  },
+  {
+    "cat": "Dining",
+    "en": "What's for lunch today?",
+    "tl": "¿Qué hay de almuerzo hoy?"
+  },
+  {
+    "cat": "Dining",
+    "en": "What's for dinner?",
+    "tl": "¿Qué hay para la cena?"
+  },
+  {
+    "cat": "Dining",
+    "en": "This food is very hot",
+    "tl": "Esta comida está muy caliente"
+  },
+  {
+    "cat": "Dining",
+    "en": "This food is cold",
+    "tl": "Esta comida está fría"
+  },
+  {
+    "cat": "Dining",
+    "en": "Can I have the check, please?",
+    "tl": "¿Me regala la cuenta, por favor?"
+  },
+  {
+    "cat": "Dining",
+    "en": "Can I have more, please?",
+    "tl": "¿Me da un poquito más, por favor?"
+  },
+  {
+    "cat": "Dining",
+    "en": "I'm finished eating",
+    "tl": "Ya terminé de comer"
+  },
+  {
+    "cat": "Dining",
+    "en": "I need a fork and knife",
+    "tl": "Necesito tenedor y cuchillo"
+  },
+  {
+    "cat": "Dining",
+    "en": "I need a spoon",
+    "tl": "Necesito una cuchara"
+  },
+  {
+    "cat": "Dining",
+    "en": "I need a napkin",
+    "tl": "Necesito una servilleta"
+  },
+  {
+    "cat": "Dining",
+    "en": "Can I have a fresh fruit juice?",
+    "tl": "¿Me regala un jugo natural en agua?"
+  },
+  {
+    "cat": "Dining",
+    "en": "I want hot chocolate with cheese",
+    "tl": "Quiero un chocolate caliente con queso"
+  },
+  {
+    "cat": "Dining",
+    "en": "Do you have arepas?",
+    "tl": "¿Tiene arepitas?"
+  },
+  {
+    "cat": "Dining",
+    "en": "Is service/tip included?",
+    "tl": "¿La propina está incluida?"
+  },
+  {
+    "cat": "Dining",
+    "en": "Is there any dessert?",
+    "tl": "¿Hay postre?"
+  },
+  {
+    "cat": "Dining",
+    "en": "I would like a typical soup",
+    "tl": "Quisiera un sancocho"
+  },
+  {
+    "cat": "Dining",
+    "en": "Can you heat this up?",
+    "tl": "¿Me puede calentar esto?"
+  },
+  {
+    "cat": "Dining",
+    "en": "Everything was delicious, thank you!",
+    "tl": "¡Todo estuvo delicioso, muchas gracias!"
+  },
+  {
+    "cat": "Travel",
+    "en": "I need to book a taxi",
+    "tl": "Necesito pedir un taxi"
+  },
+  {
+    "cat": "Travel",
+    "en": "To the airport, please",
+    "tl": "Al aeropuerto, por favor"
+  },
+  {
+    "cat": "Travel",
+    "en": "Where is the bus terminal?",
+    "tl": "¿Dónde queda la terminal de transportes?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Here is my passport",
+    "tl": "Aquí está mi pasaporte"
+  },
+  {
+    "cat": "Travel",
+    "en": "I have a reservation",
+    "tl": "Tengo una reserva"
+  },
+  {
+    "cat": "Travel",
+    "en": "Where is the hotel?",
+    "tl": "¿Dónde queda el hotel?"
+  },
+  {
+    "cat": "Travel",
+    "en": "How much is the fare?",
+    "tl": "¿Cuánto cuesta el pasaje?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Where is my baggage?",
+    "tl": "¿Dónde está mi equipaje?"
+  },
+  {
+    "cat": "Travel",
+    "en": "I lost my luggage",
+    "tl": "Se me perdió la maleta"
+  },
+  {
+    "cat": "Travel",
+    "en": "What time does the flight leave?",
+    "tl": "¿A qué hora sale el vuelo?"
+  },
+  {
+    "cat": "Travel",
+    "en": "I need a ticket to Bogotá",
+    "tl": "Necesito un tiquete para Bogotá"
+  },
+  {
+    "cat": "Travel",
+    "en": "Is this seat taken?",
+    "tl": "¿Este puesto está ocupado?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Can you help me with my bag?",
+    "tl": "¿Me ayuda con la maleta?"
+  },
+  {
+    "cat": "Travel",
+    "en": "I want to rent a car",
+    "tl": "Quiero alquilar un carro"
+  },
+  {
+    "cat": "Travel",
+    "en": "How long is the trip?",
+    "tl": "¿Cuánto demora el viaje?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Where is the boarding gate?",
+    "tl": "¿Dónde está la puerta de abordaje?"
+  },
+  {
+    "cat": "Travel",
+    "en": "I need a hotel room for tonight",
+    "tl": "Necesito una habitación de hotel para esta noche"
+  },
+  {
+    "cat": "Travel",
+    "en": "Can I pay with credit card?",
+    "tl": "¿Puedo pagar con tarjeta de crédito?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Is Wi-Fi available here?",
+    "tl": "¿Hay clave del wifi?"
+  },
+  {
+    "cat": "Travel",
+    "en": "Have a safe trip!",
+    "tl": "¡Que tenga un buen viaje!"
+  },
+  {
+    "cat": "Conversation",
+    "en": "How are you doing?",
+    "tl": "¿Cómo me le va?"
+  },
+  {
+    "cat": "Conversation",
+    "en": "I'm doing great, thank you",
+    "tl": "Estoy muy bien, gracias a Dios"
+  },
+  {
+    "cat": "Conversation",
+    "en": "I'm feeling a bit tired today",
+    "tl": "Hoy me siento un poquito cansado"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Tell me about your day",
+    "tl": "Cuénteme de su día"
+  },
+  {
+    "cat": "Conversation",
+    "en": "What's your name?",
+    "tl": "¿Cómo te llamas?"
+  },
+  {
+    "cat": "Conversation",
+    "en": "My name is...",
+    "tl": "Me llamo..."
+  },
+  {
+    "cat": "Conversation",
+    "en": "Nice to meet you",
+    "tl": "Mucho gusto en conocerlo"
+  },
+  {
+    "cat": "Conversation",
+    "en": "I don't understand",
+    "tl": "No le entiendo"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Can you repeat that, please?",
+    "tl": "¿Me puede repetir, por favor?"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Please speak a little slower",
+    "tl": "Por favor hable más despacio"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Yes, of course",
+    "tl": "Sí, claro que sí"
+  },
+  {
+    "cat": "Conversation",
+    "en": "No, thank you",
+    "tl": "No, muchas gracias"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Maybe later",
+    "tl": "Tal vez más tardecito"
+  },
+  {
+    "cat": "Conversation",
+    "en": "I don't know",
+    "tl": "No sabría decirle"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Thank you very much",
+    "tl": "Muchísimas gracias"
+  },
+  {
+    "cat": "Conversation",
+    "en": "You're very welcome!",
+    "tl": "¡Con mucho gusto!"
+  },
+  {
+    "cat": "Conversation",
+    "en": "I'm sorry",
+    "tl": "Lo siento mucho"
+  },
+  {
+    "cat": "Conversation",
+    "en": "Excuse me",
+    "tl": "Con su permiso"
+  },
+  {
+    "cat": "Conversation",
+    "en": "What do you like to do?",
+    "tl": "¿Qué le gusta hacer?"
+  },
+  {
+    "cat": "Conversation",
+    "en": "That's very nice!",
+    "tl": "¡Está muy chévere!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Good morning!",
+    "tl": "¡Buenos días!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Good afternoon!",
+    "tl": "¡Buenas tardes!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Good evening!",
+    "tl": "¡Buenas noches!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Hello, how are you?",
+    "tl": "¡Hola! ¿Cómo está?"
+  },
+  {
+    "cat": "Greetings",
+    "en": "What's up?",
+    "tl": "¡Qué más! ¿Bien o qué?"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Welcome!",
+    "tl": "¡Bienvenido!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "At your service!",
+    "tl": "¡A la orden!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "See you later!",
+    "tl": "¡Hasta luego!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "See you tomorrow!",
+    "tl": "¡Hasta mañana!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Take care!",
+    "tl": "¡Que esté muy bien, cuídese!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Have a nice day!",
+    "tl": "¡Que tenga un feliz día!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Good to see you!",
+    "tl": "¡Qué gusto verlo!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Bye!",
+    "tl": "¡Chao!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "How is your family?",
+    "tl": "¿Cómo está la familia?"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Long time no see!",
+    "tl": "¡Hace rato no lo veía!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Happy birthday!",
+    "tl": "¡Feliz cumpleaños!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Congratulations!",
+    "tl": "¡Felicitaciones!"
+  },
+  {
+    "cat": "Greetings",
+    "en": "Have a great weekend!",
+    "tl": "¡Que pase un buen fin de semana!"
+  },
+  {
+    "cat": "Shopping",
+    "en": "How much does this cost?",
+    "tl": "¿Cuánto vale esto?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "How much is it?",
+    "tl": "¿A cómo es?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Can you give me a discount?",
+    "tl": "¿Me hace una rebajita?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "I'll take it",
+    "tl": "Me lo llevo"
+  },
+  {
+    "cat": "Shopping",
+    "en": "I'm just looking, thanks",
+    "tl": "Solo estoy mirando, gracias"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Do you accept card?",
+    "tl": "¿Acepta tarjeta?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Do you have change for cash?",
+    "tl": "¿Tiene devuelta de un billete?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Is this made in Colombia?",
+    "tl": "¿Esto es hecho en Colombia?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Do you have a smaller size?",
+    "tl": "¿Tiene una talla más pequeña?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Do you have a larger size?",
+    "tl": "¿Tiene una talla más grande?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Where is the cashier?",
+    "tl": "¿Dónde está la caja?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "Can I try this on?",
+    "tl": "¿Me puedo probar esto?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "I need a bag, please",
+    "tl": "¿Me regala una bolsa, por favor?"
+  },
+  {
+    "cat": "Shopping",
+    "en": "That's too expensive",
+    "tl": "Está muy caro"
+  },
+  {
+    "cat": "Directions",
+    "en": "Where is...?",
+    "tl": "¿Dónde queda...?"
+  },
+  {
+    "cat": "Directions",
+    "en": "How do I get to...?",
+    "tl": "¿Cómo llego a...?"
+  },
+  {
+    "cat": "Directions",
+    "en": "Turn left",
+    "tl": "Gire a la izquierda"
+  },
+  {
+    "cat": "Directions",
+    "en": "Turn right",
+    "tl": "Gire a la derecha"
+  },
+  {
+    "cat": "Directions",
+    "en": "Go straight ahead",
+    "tl": "Siga derecho"
+  },
+  {
+    "cat": "Directions",
+    "en": "How many blocks is it?",
+    "tl": "¿A cuántas cuadras queda?"
+  },
+  {
+    "cat": "Directions",
+    "en": "Is it far from here?",
+    "tl": "¿Queda muy lejos de aquí?"
+  },
+  {
+    "cat": "Directions",
+    "en": "Is it close by?",
+    "tl": "¿Queda aquí cerquita?"
+  },
+  {
+    "cat": "Directions",
+    "en": "Where is the nearest bus stop?",
+    "tl": "¿Dónde queda el paradero de bus más cercano?"
+  },
+  {
+    "cat": "Directions",
+    "en": "I'm lost, can you help me?",
+    "tl": "Estoy perdido, ¿me ayuda por favor?"
+  },
+  {
+    "cat": "Emergency",
+    "en": "Help me, please!",
+    "tl": "¡Ayuda, por favor!"
+  },
+  {
+    "cat": "Emergency",
+    "en": "Call the police!",
+    "tl": "¡Llame a la policía!"
+  },
+  {
+    "cat": "Emergency",
+    "en": "I lost my wallet",
+    "tl": "Se me perdió la billetera"
+  },
+  {
+    "cat": "Emergency",
+    "en": "Someone stole my phone!",
+    "tl": "¡Me robaron el celular!"
+  },
+  {
+    "cat": "Emergency",
+    "en": "Call an ambulance!",
+    "tl": "¡Llame a una ambulancia!"
+  },
+  {
+    "cat": "Emergency",
+    "en": "I need emergency assistance!",
+    "tl": "¡Llame al 123!"
+  },
+  {
+    "cat": "Emergency",
+    "en": "I lost my passport",
+    "tl": "Perdí el pasaporte"
+  },
+  {
+    "cat": "Emergency",
+    "en": "It's an emergency!",
+    "tl": "¡Es una emergencia!"
+  }
+];
+
+// ===== STATE =====
+let direction = 'en-tl';
+let activeCat = 'All';
+let searchQuery = '';
+const TL_LANG = 'es-CO';
+const PHRASEBOOK_ID = 'colombian-social';
+
+function loadCustomPhrases() {
+  try { return JSON.parse(localStorage.getItem('customPhrases_colombian_social') || '[]'); }
+  catch { return []; }
+}
+function saveCustomPhrasesToStorage(arr) {
+  localStorage.setItem('customPhrases_colombian_social', JSON.stringify(arr));
+}
+let CUSTOM_PHRASES = loadCustomPhrases();
+
+function getAllPhrases() { return [...PHRASES, ...CUSTOM_PHRASES]; }
+function getCategories() {
+  const all = getAllPhrases();
+  const cats = ['All', ...Array.from(new Set(all.map(p => p.cat)))];
+  if (CUSTOM_PHRASES.length > 0 && !cats.includes('My Phrases')) cats.push('My Phrases');
+  return cats;
+}
+
+function init() {
+  renderCategories();
+  renderPhrases();
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
+  document.addEventListener('touchstart', function unlock() {
+    if (window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance('');
+      window.speechSynthesis.speak(u);
+    }
+    document.removeEventListener('touchstart', unlock);
+  }, { once: true });
+}
+
+function setDirection(dir) {
+  direction = dir;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPhrases();
+}
+
+function renderCategories() {
+  const row = document.getElementById('catRow');
+  const cats = getCategories();
+  row.innerHTML = cats.map(function(c) {
+    return '<button class="cat-pill ' + (c === activeCat ? 'active' : '') + '" onclick="setCategory('' + c + '')">' + c + '</button>';
+  }).join('');
+}
+
+function setCategory(cat) {
+  activeCat = cat;
+  renderCategories();
+  renderPhrases();
+}
+
+function renderPhrases() {
+  searchQuery = document.getElementById('searchInput').value.toLowerCase();
+  const list = document.getElementById('phraseList');
+  let all = getAllPhrases();
+
+  if (activeCat !== 'All' && activeCat !== 'My Phrases') {
+    all = all.filter(function(p) { return p.cat === activeCat; });
+  }
+  if (activeCat === 'My Phrases') {
+    all = CUSTOM_PHRASES;
+  }
+  if (searchQuery) {
+    all = all.filter(function(p) {
+      return p.en.toLowerCase().includes(searchQuery) || p.tl.toLowerCase().includes(searchQuery);
+    });
+  }
+
+  if (all.length === 0) {
+    list.innerHTML = '<div class="no-results">No phrases found. Try a different search.</div>';
+    return;
+  }
+
+  list.innerHTML = all.map(function(p, i) {
+    var idx = PHRASES.indexOf(p);
+    var isCustom = idx === -1;
+    var enText = direction === 'en-tl' ? p.en : p.tl;
+    var tlText = direction === 'en-tl' ? p.tl : p.en;
+    var speakLang = direction === 'en-tl' ? TL_LANG : 'en-US';
+    var safeText = tlText.replace(/'/g, "\\'");
+    var customIdx = isCustom ? CUSTOM_PHRASES.indexOf(p) : -1;
+    return '<div class="phrase-card" onclick="speak(this, '' + safeText + '', '' + speakLang + '')">' +
+      '<div class="phrase-tag">' + p.cat + '</div>' +
+      '<div class="phrase-en">' + enText + '</div>' +
+      '<div class="phrase-es"><span class="speak-icon">🔊</span>' + tlText + (isCustom ? '<span class="custom-badge">MY PHRASE</span>' : '') + '</div>' +
+      (isCustom ? '<button class="delete-phrase" onclick="deleteCustomPhrase(' + customIdx + '); event.stopPropagation();">✕</button>' : '') +
+    '</div>';
+  }).join('');
+}
+
+var currentUtterance = null;
+function speak(card, text, lang) {
+  document.querySelectorAll('.phrase-card.speaking').forEach(function(c) { c.classList.remove('speaking'); });
+  card.classList.add('speaking');
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = 0.85;
+    u.onend = function() {
+      card.classList.remove('speaking');
+      document.getElementById('nowSpeaking').classList.remove('show');
+    };
+    u.onstart = function() {
+      document.getElementById('speakingText').textContent = text;
+      document.getElementById('nowSpeaking').classList.add('show');
+    };
+    currentUtterance = u;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+// ===== CUSTOM PHRASES =====
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('customEn').value = '';
+  document.getElementById('customTl').value = '';
+  document.getElementById('modalError').textContent = '';
+}
+function saveCustomPhrase() {
+  var en = document.getElementById('customEn').value.trim();
+  var tl = document.getElementById('customTl').value.trim();
+  var cat = document.getElementById('customCat').value;
+  if (!en || !tl) {
+    document.getElementById('modalError').textContent = 'Both fields are required.';
+    return;
+  }
+  CUSTOM_PHRASES.push({ en: en, tl: tl, cat: cat || 'Custom' });
+  saveCustomPhrasesToStorage(CUSTOM_PHRASES);
+  closeModal();
+  renderCategories();
+  renderPhrases();
+}
+function deleteCustomPhrase(idx) {
+  CUSTOM_PHRASES.splice(idx, 1);
+  saveCustomPhrasesToStorage(CUSTOM_PHRASES);
+  renderCategories();
+  renderPhrases();
+}
+
+// ===== LICENSE =====
+var DEMO_LIMIT = 10;
+var unlocked = false;
+
+function tryUnlock() {
+  var input = document.getElementById('lockInput').value.trim();
+  if (!input) return;
+  document.getElementById('lockError').style.display = 'none';
+  fetch('https://john-174a7c51.base44.app/functions/verifyPhrasebookLicense', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ license_key: input, phrasebook: 'colombian-social' })
+  }).then(function(res) { return res.json(); }).then(function(data) {
+    if (data.valid === true) {
+      localStorage.setItem('license_colombian_social', input);
+      unlocked = true;
+      document.getElementById('lockOverlay').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      init();
+    } else {
+      document.getElementById('lockError').style.display = 'block';
+    }
+  }).catch(function(e) {
+    document.getElementById('lockError').style.display = 'block';
+  });
+}
+
+function enterDemo() {
+  document.getElementById('lockOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  init();
+}
+
+// On load
+(function() {
+  var saved = localStorage.getItem('license_colombian_social');
+  if (saved) {
+    unlocked = true;
+    document.getElementById('lockOverlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('lockOverlay').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>
