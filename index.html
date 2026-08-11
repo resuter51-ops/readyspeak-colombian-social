@@ -759,7 +759,7 @@ function renderCategories() {
   const row = document.getElementById('catRow');
   const cats = getCategories();
   row.innerHTML = cats.map(function(c) {
-    return '<button class="cat-pill ' + (c === activeCat ? 'active' : '') + '" onclick="setCategory('' + c + '')">' + c + '</button>';
+    return '<button class="cat-pill ' + (c === activeCat ? 'active' : '') + '" onclick="setCategory(\'' + c + '\')">' + c + '</button>';
   }).join('');
 }
 
@@ -799,7 +799,7 @@ function renderPhrases() {
     var speakLang = direction === 'en-tl' ? TL_LANG : 'en-US';
     var safeText = tlText.replace(/'/g, "\\'");
     var customIdx = isCustom ? CUSTOM_PHRASES.indexOf(p) : -1;
-    return '<div class="phrase-card" onclick="speak(this, '' + safeText + '', '' + speakLang + '')">' +
+    return '<div class="phrase-card" onclick="speak(this, \'' + safeText + '\', \'' + speakLang + '\')">' +
       '<div class="phrase-tag">' + p.cat + '</div>' +
       '<div class="phrase-en">' + enText + '</div>' +
       '<div class="phrase-es"><span class="speak-icon">🔊</span>' + tlText + (isCustom ? '<span class="custom-badge">MY PHRASE</span>' : '') + '</div>' +
